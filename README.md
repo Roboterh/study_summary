@@ -6,6 +6,6 @@
 
 ### CC链
 
-- [CC1](https://github.com/Roboterh/POC_Payload/Java/CC链/CC1_POC.java)
+- [CC1](https://github.com/Roboterh/POC_Payload/blob/main/Java/CC链/CC1_POC.java)
 
-- [CC2](https://github.com/Roboterh/POC_Payload/Java/CC链/CC6_POC.java)
+- [CC2](https://github.com/Roboterh/POC_Payload/blob/main/Java/CC链/CC1_POC.java)
