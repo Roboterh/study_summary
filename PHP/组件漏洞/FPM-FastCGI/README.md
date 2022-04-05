@@ -8,6 +8,8 @@
 
 #### 生成payload
 
+##### 方法一
+
 使用`gopherus`来生成payload，（工具在KALI中）
 
 ```python
@@ -21,6 +23,12 @@ python gopherus.py --exploit fastcgi
 之后需要输入需要执行的命令
 
 之后得到的payload，只需要`_`之后的内容
+
+##### 方法二
+
+同样可以通过脚本生成payload
+
+`fastcgi_payload.py`
 
 #### 搭建ftp服务
 
