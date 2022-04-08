@@ -1,5 +1,7 @@
 /**
  * 在JDK1.8 8u71之后的版本对 AnnotationInvocationHandler 进行了修改，导致不能使用
+ * 
+ * 不再使用反序列化得到的 Map 对象，而是新建了一个LinkedHashMap 对象，将原来的键值添加进去，所以后续的操作都是对 LinkedHashMap
  */
 
 

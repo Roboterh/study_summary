@@ -30,3 +30,9 @@ POC：
 这里提供两个小工具`BaseToClass.java` `ClassToBase.java`，是class文件和base64编码的相互转换
 
 使用`Rome_bypass_noShow.java`生成payload
+
+##### 缩短payload
+
+- `RomeShorter.java`采用了asm和缩短TemplateImpl，和很短的EqualsBean链触发TemplatesImpl链
+- `Rome_shorter2.java`采用了ysoserial项目的链子进行缩短
+- `Rome_shorter3.java`采用了`BadAttributeValueExpException`的链子进行缩短
