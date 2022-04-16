@@ -1,12 +1,16 @@
+package ysoserial.vulndemo;
+
 /*
 	Gadget chain:
 		ObjectInputStream.readObject()
 			PriorityQueue.readObject()
-				...
-					TransformingComparator.compare()
-						InvokerTransformer.transform()
-							Method.invoke()
-								Runtime.exec()
+				PriorityQueue.heapify()
+				    PriorityQueue.siftDown()
+				        PriorityQueue.siftDownUsingComparator()
+					        TransformingComparator.compare()
+						        InvokerTransformer.transform()
+							        Method.invoke()
+								        Runtime.exec()
  */
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -71,7 +71,7 @@ TransformingComparator.compare()之后调用了transformer
 - CC2_plus:
 
 ```java
-使用的是TemplatesImpl
+使用的是TemplatesImpl.newTransformer
 ```
 
 
