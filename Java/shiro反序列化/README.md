@@ -27,3 +27,6 @@
 
 - `shiro_POC2.java`
   `TrAXFilter.class`+`Templates.class`组合进行漏洞触发
+  
+- `shiro_POC_withoutCC`
+  在没有CC组件的情况下通过shiro的依赖CB打，如果有CC依赖，也可以使用CB链的另一个打

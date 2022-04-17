@@ -74,5 +74,16 @@ TransformingComparator.compare()之后调用了transformer
 使用的是TemplatesImpl.newTransformer
 ```
 
+- CC4:
 
+```java
+TrAXFilter + InstantiateTransformer + PriorityQueue
+```
+
+- CC4_plus:
+
+```java
+TreeBag + InvokerTransformer
+TemplatesImpl.newTransformer
+```
 
